@@ -1,0 +1,6 @@
+__pycache__
+wandb
+datasets/**/output/
+
+*.pt
+*.json
