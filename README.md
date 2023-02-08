@@ -22,3 +22,6 @@ python preprocess/meshfix.py -i datasets/real/dragon/dragon_original.obj
 
 ### Training
 
+```
+python mgcn -i datasets/real/dragon -real
+```
