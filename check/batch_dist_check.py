@@ -24,9 +24,9 @@ def main():
     """ calculate hausdorff distances """
     args = get_parser()
     if args.real:
-        EPS = 0.05
+        EPS = 1.0
     else:
-        EPS = 0.01
+        EPS = 0.05
     i_dir = "{}/comparison".format(args.input)
     o_dir = "{}/colored".format(i_dir)
     os.makedirs(o_dir, exist_ok=True)

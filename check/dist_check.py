@@ -35,9 +35,9 @@ def simple_mesh_distance(out_path, gt_path):
 def mesh_distance(gt_path, org_path, out_path, real=False):
     """ calculate hausdorff distance """
     if real:
-        EPS = 0.05
+        EPS = 1.0
     else:
-        EPS = 0.01
+        EPS = 0.05
     ms = ml.MeshSet()
     ms.load_new_mesh(gt_path)
 

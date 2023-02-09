@@ -161,11 +161,10 @@ class UpConv(nn.Module):
 
 
 class MGCN(nn.Module):
-    def __init__(self, device, smo_mesh, ini_mesh, v_mask, activation="lrelu", drop_rate=0.6, skip=False, drop=True, h0=4):
+    def __init__(self, device, smo_mesh, ini_mesh, v_mask, K=3, skip=False):
         super(MGCN, self).__init__()
         self.device = device
         self.skip = skip
-        self.drop = drop
         
         pool_levels = 3
         nv = len(smo_mesh.vs)
@@ -209,32 +208,20 @@ class MGCN(nn.Module):
         self.v_masks_list = v_masks_list
         self.f_masks = f_masks
         self.f_masks_list = f_masks_list
-
-        # self.encoder = nn.Sequential(
-        #     DownConv(4, 32, edge_inds[0], edge_inds[1], p_hashes[0], drop_rate=0.0),
-        #     DownConv(32, 128, edge_inds[1], edge_inds[2], p_hashes[1], drop_rate=0.2),
-        #     DownConv(128, 256, edge_inds[2], edge_inds[3], p_hashes[2], drop_rate=0.2),
-        # )
-        # self.decoder = nn.Sequential(
-        #     UpConv(256, 128, edge_inds[3], edge_inds[2], up_hashes[2], drop_rate=0.2),
-        #     UpConv(128, 32, edge_inds[2], edge_inds[1], up_hashes[1], drop_rate=0.0),
-        #     UpConv(32, 16, edge_inds[1], edge_inds[0], up_hashes[0], drop_rate=0.0),
-        #     nn.Linear(16, 3),
-        # )
-        k=3
-        self.encoder1 = DownConv(4, 32, edge_inds[0], edge_inds[1], p_hashes[0], K=k, drop_rate=0.0)
-        self.encoder2 = DownConv(32, 128, edge_inds[1], edge_inds[2], p_hashes[1], K=k, drop_rate=0.2)
-        self.encoder3 = DownConv(128, 256, edge_inds[2], edge_inds[3], p_hashes[2], K=k, drop_rate=0.2)
         
-        self.decoder3 = UpConv(256, 128, edge_inds[3], edge_inds[2], up_hashes[2], K=k, drop_rate=0.2)
-        self.decoder2 = UpConv(128, 32, edge_inds[2], edge_inds[1], up_hashes[1], K=k, drop_rate=0.2)
+        self.encoder1 = DownConv(4, 32, edge_inds[0], edge_inds[1], p_hashes[0], K=K, drop_rate=0.0)
+        self.encoder2 = DownConv(32, 128, edge_inds[1], edge_inds[2], p_hashes[1], K=K, drop_rate=0.2)
+        self.encoder3 = DownConv(128, 256, edge_inds[2], edge_inds[3], p_hashes[2], K=K, drop_rate=0.2)
+        
+        self.decoder3 = UpConv(256, 128, edge_inds[3], edge_inds[2], up_hashes[2], K=K, drop_rate=0.2)
+        self.decoder2 = UpConv(128, 32, edge_inds[2], edge_inds[1], up_hashes[1], K=K, drop_rate=0.2)
         self.decoder1 = nn.Sequential(
-            UpConv(32, 16, edge_inds[1], edge_inds[0], up_hashes[0], K=k, drop_rate=0.0),
+            UpConv(32, 16, edge_inds[1], edge_inds[0], up_hashes[0], K=K, drop_rate=0.0),
             nn.Linear(16, 3),
         )
 
         self.mcnn3 = Sequential("x, edge_index", [
-            (ChebConv(256, 32, K=k), "x, edge_index -> x"),
+            (ChebConv(256, 32, K=K), "x, edge_index -> x"),
             # (GCNConv(256, 32), "x, edge_index -> x"),
             (nn.BatchNorm1d(32), "x -> x"),
             (nn.LeakyReLU(), "x -> x"),
@@ -242,7 +229,7 @@ class MGCN(nn.Module):
         ])
 
         self.mcnn2 = Sequential("x, edge_index", [
-            (ChebConv(128, 32, K=k), "x, edge_index -> x"),
+            (ChebConv(128, 32, K=K), "x, edge_index -> x"),
             # (GCNConv(128, 32), "x, edge_index -> x"),
             (nn.BatchNorm1d(32), "x -> x"),
             (nn.LeakyReLU(), "x -> x"),
@@ -250,8 +237,8 @@ class MGCN(nn.Module):
         ])
 
         self.mcnn1 = Sequential("x, edge_index", [
-            (ChebConv(32, 32, K=k), "x, edge_index -> x"),
-            # (GCNConv(32, 32, K=k), "x, edge_index -> x"),
+            (ChebConv(32, 32, K=K), "x, edge_index -> x"),
+            # (GCNConv(32, 32, K=K), "x, edge_index -> x"),
             (nn.BatchNorm1d(32), "x -> x"),
             (nn.LeakyReLU(), "x -> x"),
             (nn.Linear(32, 3), "x -> x"),

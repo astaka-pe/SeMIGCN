@@ -31,7 +31,7 @@ def get_parser():
     parser.add_argument("-iter", type=int, default=300)
     parser.add_argument("-iter_refine", type=int, default=1000)
     parser.add_argument("-k1", type=float, default=4.0)
-    parser.add_argument("-k2", type=float, default=1.5)
+    parser.add_argument("-k2", type=float, default=4.0)
     parser.add_argument("-dm_size", type=int, default=40)
     parser.add_argument("-net", type=str, default="single")
     parser.add_argument("-activation", type=str, default="lrelu")
@@ -45,6 +45,7 @@ def get_parser():
     parser.add_argument("-gpu", type=int, default=0)
     parser.add_argument("-cache", action="store_true")
     parser.add_argument("-CAD", action="store_true")
+    parser.add_argument("-real", action="store_true")
     args = parser.parse_args()
 
     for k, v in vars(args).items():
@@ -98,7 +99,7 @@ def main():
             batch_index = torch.randperm(n_data).reshape(-1, args.batch)
             epoch_loss_p = 0.0
             epoch_loss_n = 0.0
-            epoch_loss_c = 0.0
+            epoch_loss_r = 0.0
             epoch_loss = 0.0
 
             for batch in batch_index:
@@ -116,13 +117,13 @@ def main():
                     norm = Models.compute_fn(pos, ini_mesh.faces)
                     loss_p = Loss.mask_pos_rec_loss(pos, ini_vs, v_mask)
                     loss_n = Loss.mask_norm_rec_loss(norm, rot_mesh.fn, f_mask)
-                    #loss_r, _ = Loss.fn_bnf_loss(pos, norm.to(pos.device), ini_mesh)
                     if args.CAD:
                         loss_bnf, _ = Loss.fn_bnf_detach_loss(pos, norm, ini_mesh, loop=5)
-                        loss = loss_p + args.k1 * loss_n + 4.0 * loss_bnf
+                        loss = loss_p + args.k1 * loss_n + args.k2 * loss_bnf
+                        epoch_loss_r += loss_bnf.item()
                     else:
-                        loss_lap = Loss.mesh_laplacian_loss(pos, ini_mesh)
-                        loss = loss_p + args.k1 * loss_n + 0.0 * loss_lap
+                        #loss_lap = Loss.mesh_laplacian_loss(pos, ini_mesh)
+                        loss = loss_p + args.k1 * loss_n#+ 0.0 * loss_lap
                     epoch_loss_p += loss_p.item()
                     epoch_loss_n += loss_n.item()
                         
@@ -134,11 +135,11 @@ def main():
 
             epoch_loss_p /= n_data
             epoch_loss_n /= n_data
-            epoch_loss_c /= n_data
+            epoch_loss_r /= n_data
             epoch_loss /= n_data
             wandb.log({"loss_p": epoch_loss_p}, step=epoch)
             wandb.log({"loss_n": epoch_loss_n}, step=epoch)
-            wandb.log({"loss_c": epoch_loss_c}, step=epoch)
+            wandb.log({"loss_r": epoch_loss_r}, step=epoch)
             wandb.log({"loss": epoch_loss}, step=epoch)
             pbar.set_description("Epoch {}".format(epoch))
             pbar.set_postfix({"loss": epoch_loss})
@@ -169,11 +170,15 @@ def main():
     dm = v_mask.reshape(-1, 1).float()
     out_pos = posnet(dataset, dm).to("cpu").detach()
     ini_pos = torch.from_numpy(ini_mesh.vs).float()
-    ref_pos = Mesh.mesh_merge(ini_mesh.Lap, ini_mesh, out_pos, v_mask)
+    if args.CAD:
+        w = 0.01
+    else:
+        w = 1.0
+    ref_pos = Mesh.mesh_merge(ini_mesh.Lap, ini_mesh, out_pos, v_mask, w=w)
     out_path = "{}/output/{}_sgcn/refine.obj".format(args.input, dt_now, args.net)
     out_mesh.vs = ref_pos.detach().numpy().copy()
     Mesh.save(out_mesh, out_path)
-    DIST.mesh_distance(mesh_dic["gt_file"], mesh_dic["org_file"], out_path)
+    DIST.mesh_distance(mesh_dic["gt_file"], mesh_dic["org_file"], out_path, args.real)
 
     """ neural refine """
     # torch_fix_seed()

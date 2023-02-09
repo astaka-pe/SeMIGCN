@@ -1,4 +1,3 @@
-from unittest import skip
 import numpy as np
 import torch
 import datetime
@@ -30,7 +29,7 @@ def get_parse():
     parser.add_argument("-pos_lr", type=float, default=0.01)
     parser.add_argument("-iter", type=int, default=100)
     parser.add_argument("-k1", type=float, default=4.0)
-    parser.add_argument("-k2", type=float, default=1.5)
+    parser.add_argument("-k2", type=float, default=4.0)
     parser.add_argument("-dm_size", type=int, default=40)
     parser.add_argument("-kn", type=int, nargs="*", default=[4])
     parser.add_argument("-batch", type=int, default=5)
@@ -137,13 +136,13 @@ if __name__ == "__main__":
                     loss_n = Loss.mask_norm_rec_loss(norm, ini_mesh.fn, f_mask)
                     if args.CAD:
                         loss_reg, _ = Loss.fn_bnf_detach_loss(pos, norm, ini_mesh, loop=5)
-                        loss = loss_p + args.k1 * loss_n + 4.0 * loss_reg
+                        loss = loss_p + args.k1 * loss_n + args.k2 * loss_reg
+                        epoch_loss_r += loss_reg.item()
                     else:
-                        loss_reg = Loss.mesh_laplacian_loss(pos, ini_mesh)
-                        loss = loss_p + args.k1 * loss_n + 0.0 * loss_reg
+                        # loss_reg = Loss.mesh_laplacian_loss(pos, ini_mesh)
+                        loss = loss_p + args.k1 * loss_n# + 0.0 * loss_reg
                     epoch_loss_p += loss_p.item()
                     epoch_loss_n += loss_n.item()
-                    epoch_loss_r += loss_reg.item()
 
                     loss.backward()
                     epoch_loss += loss.item()
@@ -186,6 +185,10 @@ if __name__ == "__main__":
     poss = posnet(dataset, dm)
     out_pos = poss[0].to("cpu").detach()
     ini_pos = torch.from_numpy(ini_mesh.vs).float()
+    if args.CAD:
+        w = 0.01
+    else:
+        w = 1.0
     ref_pos = Mesh.mesh_merge(ini_mesh.Lap, ini_mesh, out_pos, v_mask)
     out_path = "{}/output/{}_mgcn/refine.obj".format(args.input, dt_now)
     out_mesh.vs = ref_pos.detach().numpy().copy()

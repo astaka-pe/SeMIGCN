@@ -16,7 +16,7 @@
 - Create **initial mesh** and **smoothed mesh**
 
 ```
-python preprocess/meshfix.py -i datasets/**/{mesh-name}/{mesh-name}_original.obj
+python preprocess/prepare.py -i datasets/**/{mesh-name}/{mesh-name}_original.obj
 ```
 - options
     - `-r {float}`: Target length of remeshing. The higher the coarser, the lower the finer. `default=0.6`.
@@ -45,3 +45,18 @@ python check/batch_dist_check.py -i datasets/**/{mesh-name}
 
 - options
     - `-real`: For a real scan
+
+## Run other competitive methods
+
+### MeshFix [Attene 2010]
+
+```
+python meshfix.py -i datasets/**/{mesh-name}
+```
+
+### Context-based Coherent Surface Completion [Harary+ 2014]
+
+```
+conda activate tinymesh
+python context_fill.py -i datasets/**/{mesh-name}
+```
