@@ -16,12 +16,32 @@
 - Create **initial mesh** and **smoothed mesh**
 
 ```
-python preprocess/meshfix.py -i datasets/real/dragon/dragon_original.obj
+python preprocess/meshfix.py -i datasets/**/{mesh-name}/{mesh-name}_original.obj
 ```
+- options
+    - `-r {float}`: Target length of remeshing. The higher the coarser, the lower the finer. `default=0.6`.
+
 - Computation time: 30 sec
 
 ### Training
 
 ```
-python mgcn.py -i datasets/real/dragon -real
+python mgcn.py -i datasets/**/{mesh-name}
 ```
+
+- options
+    - `-CAD`: For a CAD model
+    - `-real`: For a real scan
+    - `-cache`: For using cache files (for faster computation)
+
+### Evaluation
+
+- Create `datasets/**/{mesh-name}/comparison` and put meshes for evaluation
+    - A deficient mesh `datasets/**/{mesh-name}/comparison/original.obj` and a ground truth mesh `datasets/**/{mesh-name}/comparison/gt.obj` are needed for evaluation
+
+```
+python check/batch_dist_check.py -i datasets/**/{mesh-name}
+```
+
+- options
+    - `-real`: For a real scan
