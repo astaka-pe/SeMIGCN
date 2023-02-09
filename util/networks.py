@@ -1,7 +1,6 @@
 import torch
 import torch.nn as nn
 import numpy as np
-import os
 from torch_geometric.nn import GCNConv, Sequential
 
 
