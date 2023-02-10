@@ -161,7 +161,7 @@ def main():
 
             pbar.update(1)
 
-    DIST.mesh_distance(mesh_dic["gt_file"], mesh_dic["org_file"], out_path)
+    DIST.mesh_distance(mesh_dic["gt_file"], mesh_dic["org_file"], out_path, args.real)
 
     """ refinement """
 

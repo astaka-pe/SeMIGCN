@@ -26,6 +26,7 @@ def torch_fix_seed(seed=314):
 def get_parse():
     parser = argparse.ArgumentParser(description="Self-supervised Mesh Completion")
     parser.add_argument("-i", "--input", type=str, required=True)
+    parser.add_argument("-o", "--output", type=str, default="")
     parser.add_argument("-pos_lr", type=float, default=0.01)
     parser.add_argument("-iter", type=int, default=100)
     parser.add_argument("-k1", type=float, default=4.0)
@@ -83,11 +84,10 @@ if __name__ == "__main__":
     v_masks_list = posnet.v_masks_list
     poss_list = posnet.poss_list
     nvs_all = [len(meshes[0].vs)] + nvs
-    pos_weight = [0.35, 0.3, 0.2, 0.15]
-    # pos_weight = [0.5, 0.3, 0.15, 0.05]
-    # pos_weight = [1.0, 0.0, 0.0, 0.0]
+    # pos_weight = [0.35, 0.3, 0.2, 0.15]
+    pos_weight = [1.0, 0.0, 0.0, 0.0]
 
-    os.makedirs("{}/output/{}_mgcn".format(args.input, dt_now), exist_ok=True)
+    os.makedirs("{}/output/{}_mgcn_{}".format(args.input, dt_now, args.output), exist_ok=True)
 
     """ --- learning loop --- """
     with tqdm(total=args.iter) as pbar:
@@ -98,6 +98,7 @@ if __name__ == "__main__":
             epoch_loss_p = 0.0
             epoch_loss_n = 0.0
             epoch_loss_r = 0.0
+            epoch_loss_pos = 0.0
             epoch_loss = 0.0
 
             for batch in batch_index:
@@ -130,6 +131,7 @@ if __name__ == "__main__":
                     for mesh_idx, pos_i in enumerate(poss):
                         if mesh_idx == 0:
                             loss_p = Loss.mask_pos_rec_loss(pos_i, poss_list[mesh_idx], v_masks_list[mesh_idx].reshape(-1).bool()) * pos_weight[mesh_idx]
+                            epoch_loss_pos += loss_p.item() / pos_weight[mesh_idx]
                         else:
                             loss_p = loss_p + Loss.mask_pos_rec_loss(pos_i, poss_list[mesh_idx], v_masks_list[mesh_idx].reshape(-1).bool()) * pos_weight[mesh_idx]
                     # loss_p = Loss.mask_pos_rec_loss(poss, anss, v_masks.reshape(-1).bool())
@@ -154,9 +156,11 @@ if __name__ == "__main__":
             epoch_loss_n /= n_data
             epoch_loss_r /= n_data
             epoch_loss /= n_data
+            epoch_loss_pos /= n_data
             wandb.log({"loss_p": epoch_loss_p}, step=epoch)
             wandb.log({"loss_n": epoch_loss_n}, step=epoch)
             wandb.log({"loss_r": epoch_loss_r}, step=epoch)
+            wandb.log({"loss_pos": epoch_loss_pos}, step=epoch)
             wandb.log({"loss": epoch_loss}, step=epoch)
             pbar.set_description("Epoch {}".format(epoch))
             pbar.set_postfix({"loss": epoch_loss})
@@ -168,11 +172,11 @@ if __name__ == "__main__":
                 poss = posnet(dataset, dm)
                 st_nv = 0
                 for res, mesh in enumerate(meshes):
-                    out_path = "{}/output/{}_mgcn/{}_step_{}.obj".format(args.input, dt_now, str(epoch), res)
+                    out_path = "{}/output/{}_mgcn_{}/{}_step_{}.obj".format(args.input, dt_now, args.output, str(epoch), res)
                     mesh.vs = poss[res].to("cpu").detach().numpy().copy()
                     st_nv += len(mesh.vs)
                     Mesh.save(mesh, out_path)
-                out_path = "{}/output/{}_mgcn/{}_step_0.obj".format(args.input, dt_now, str(epoch))
+                out_path = "{}/output/{}_mgcn_{}/{}_step_0.obj".format(args.input, dt_now, args.output, str(epoch))
                 
             pbar.update(1)
 
@@ -190,7 +194,7 @@ if __name__ == "__main__":
     else:
         w = 1.0
     ref_pos = Mesh.mesh_merge(ini_mesh.Lap, ini_mesh, out_pos, v_mask)
-    out_path = "{}/output/{}_mgcn/refine.obj".format(args.input, dt_now)
+    out_path = "{}/output/{}_mgcn_{}/refine.obj".format(args.input, dt_now, args.output)
     out_mesh.vs = ref_pos.detach().numpy().copy()
     Mesh.save(out_mesh, out_path)
 

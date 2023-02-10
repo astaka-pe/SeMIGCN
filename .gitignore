@@ -2,6 +2,7 @@ __pycache__
 wandb
 datasets/**/output/
 datasets/**/comparison/
+datasets/**/pooled/
 
 *.pt
 *.json
