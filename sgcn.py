@@ -66,7 +66,7 @@ def main():
     fmask_dummy = mesh_dic["fmask_dummy"]
 
     """ --- wandb settings --- """
-    wandb.init(project="ddmp-comp", group=mesh_name, name=dt_now.isoformat(),
+    wandb.init(project="inpaint_mgcn", group=mesh_name, name=dt_now.isoformat(),
             config={
                 "dm_size": args.dm_size,
                 "kn": args.kn,

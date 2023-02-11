@@ -84,8 +84,8 @@ if __name__ == "__main__":
     v_masks_list = posnet.v_masks_list
     poss_list = posnet.poss_list
     nvs_all = [len(meshes[0].vs)] + nvs
-    # pos_weight = [0.35, 0.3, 0.2, 0.15]
-    pos_weight = [1.0, 0.0, 0.0, 0.0]
+    pos_weight = [0.35, 0.3, 0.2, 0.15]
+    # pos_weight = [1.0, 0.0, 0.0, 0.0]
 
     os.makedirs("{}/output/{}_mgcn_{}".format(args.input, dt_now, args.output), exist_ok=True)
 
@@ -193,7 +193,7 @@ if __name__ == "__main__":
         w = 0.01
     else:
         w = 1.0
-    ref_pos = Mesh.mesh_merge(ini_mesh.Lap, ini_mesh, out_pos, v_mask)
+    ref_pos = Mesh.mesh_merge(ini_mesh.Lap, ini_mesh, out_pos, v_mask, w=w)
     out_path = "{}/output/{}_mgcn_{}/refine.obj".format(args.input, dt_now, args.output)
     out_mesh.vs = ref_pos.detach().numpy().copy()
     Mesh.save(out_mesh, out_path)

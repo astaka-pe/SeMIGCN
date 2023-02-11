@@ -26,7 +26,7 @@ def main():
     args = get_parse()
     mesh_name = args.input.split("/")[-1]
     # new_path = "{}/comparison/semi-single-wo-refine.obj".format(args.input)
-    new_path = "{}/comparison/sgcn-wo-refine.obj".format(args.input)
+    new_path = "{}/comparison/mgcn-wo-refine.obj".format(args.input)
     org_path = "{}/comparison/initial.obj".format(args.input)
     vm_path = "{}/{}_vmask.json".format(args.input, mesh_name)
     out_path1 = "{}/comparison/mgcn-w-refine.obj".format(args.input)
@@ -41,7 +41,7 @@ def main():
     new_pos = torch.from_numpy(new_mesh.vs).float()
     org_pos = torch.from_numpy(org_mesh.vs).float()
     if args.CAD:
-        w = 0.01
+        w = 0.01 # or 0.1
     else:
         w = 1.0
     out_pos = Mesh.mesh_merge(org_mesh.Lap, org_mesh, new_pos, v_mask, w=w, w_b=0)

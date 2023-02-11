@@ -6,3 +6,5 @@ datasets/**/pooled/
 
 *.pt
 *.json
+*.ply
+*.obj
