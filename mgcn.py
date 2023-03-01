@@ -131,7 +131,7 @@ if __name__ == "__main__":
                     for mesh_idx, pos_i in enumerate(poss):
                         if mesh_idx == 0:
                             loss_p = Loss.mask_pos_rec_loss(pos_i, poss_list[mesh_idx], v_masks_list[mesh_idx].reshape(-1).bool()) * pos_weight[mesh_idx]
-                            epoch_loss_pos += loss_p.item() / pos_weight[mesh_idx]
+                            epoch_loss_pos += Loss.mask_pos_rec_loss(pos_i, poss_list[0], v_masks_list[0].reshape(-1).bool()).item()
                         else:
                             loss_p = loss_p + Loss.mask_pos_rec_loss(pos_i, poss_list[mesh_idx], v_masks_list[mesh_idx].reshape(-1).bool()) * pos_weight[mesh_idx]
                     # loss_p = Loss.mask_pos_rec_loss(poss, anss, v_masks.reshape(-1).bool())
@@ -190,7 +190,7 @@ if __name__ == "__main__":
     out_pos = poss[0].to("cpu").detach()
     ini_pos = torch.from_numpy(ini_mesh.vs).float()
     if args.CAD:
-        w = 0.01
+        w = 0.01    # 0.01
     else:
         w = 1.0
     ref_pos = Mesh.mesh_merge(ini_mesh.Lap, ini_mesh, out_pos, v_mask, w=w)

@@ -81,6 +81,7 @@ def normalize_scale(ms, dirname, meshname):
     ave_len, init_mesh = edge_based_scaling(init_mesh)
     org_mesh.vs /= ave_len
     Mesh.save(init_mesh, "{}/{}_initial.obj".format(dirname, meshname))
+    init_mesh.path = "{}/{}_initial.obj".format(dirname, meshname)
     torch.save(init_mesh, "{}/{}_initial.pt".format(dirname, meshname))
     Mesh.save(org_mesh, "{}/{}_original.obj".format(dirname, meshname), color=True)
     try:

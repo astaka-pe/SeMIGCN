@@ -36,7 +36,7 @@ def create_dataset(file_path: str, dm_size=40, kn=[1], cache=False) -> Tuple[dic
     org_file = "{}/{}_original.obj".format(file_path, mesh_name)
     vmask_file = "{}/{}_vmask.json".format(file_path, mesh_name)
     fmask_file = "{}/{}_fmask.json".format(file_path, mesh_name)
-    
+
     print("[Loading meshes...]")
     try:
         ini_mesh = torch.load("{}/{}_initial.pt".format(file_path, mesh_name))
@@ -111,7 +111,10 @@ def make_dummy_mask(mesh, dm_size=40, kn=[3, 4, 5], exist_face=None):
         valid_idx.extend(np.arange(dm_size*i, dm_size*(i+1)).tolist())
     
     AI = mesh.AdjI.float()
-    p_list = torch.tensor([0.3, 0.06, 0.02, 0.02, 0.014, 0.008, 0.008, 0.0002, 0.001])
+    # p_list = torch.tensor([0.3, 0.06, 0.02, 0.02, 0.014, 0.008, 0.008, 0.0002, 0.001])
+    #p_list = torch.tensor([0.007, 0.007, 0.007, 0.007, 0.007, 0.007, 0.007, 0.0007, 0.007])
+    p_list = torch.tensor([0.014, 0.014, 0.014, 0.014, 0.014, 0.014, 0.014, 0.0014, 0.014])
+    #p_list = torch.tensor([0.021, 0.021, 0.021, 0.021, 0.021, 0.021, 0.021, 0.0021, 0.021])
     #p_list = torch.tensor([0.3, 0.06, 0.04, 0.02, 0.006, 0.008, 0.004, 0.0002, 0.001])
     vmask = torch.tensor([])
     bar = tqdm(total=sum(kn))
@@ -132,16 +135,16 @@ def make_dummy_mask(mesh, dm_size=40, kn=[3, 4, 5], exist_face=None):
     """ write the masked meshes """
     for i, k in enumerate(kn):
         color = np.ones([len(mesh.faces), 3])
-        color[:, 0] = 0.75
-        color[:, 1] = 0.75
-        color[:, 2] = 0.75
+        color[:, 0] = 0.332  # 0.75
+        color[:, 1] = 0.664  # 0.75
+        color[:, 2] = 1.0  # 0.75
         black = fmask[:, dm_size*i] == 0
-        color[black, 0] = 0
-        color[black, 1] = 0
-        color[black, 2] = 0
-        color[exist_face==0, 0] = 0
-        color[exist_face==0, 1] = 0.5
-        color[exist_face==0, 2] = 1
+        color[black, 0] = 1.0 # 0
+        color[black, 1] = 0.664 # 0
+        color[black, 2] = 0.0 # 0
+        color[exist_face==0, 0] = 1.0 # 0
+        color[exist_face==0, 1] = 0.0 # 0.5
+        color[exist_face==0, 2] = 1.0 # 1
         dropv = 100 * torch.sum(vmask[:, dm_size*i] == 0) // len(mesh.vs)
         filename = "{}/dummy_mask/{}-neighbor-{}per.ply".format(os.path.dirname(mesh.path), k, dropv)
         mesh.save_as_ply(filename, color)
@@ -149,16 +152,16 @@ def make_dummy_mask(mesh, dm_size=40, kn=[3, 4, 5], exist_face=None):
     
     # for i in range(10):
     #     color = np.ones([len(mesh.faces), 3])
-    #     color[:, 0] = 0.75
-    #     color[:, 1] = 0.75
-    #     color[:, 2] = 0.75
+    #     color[:, 0] = 0.332
+    #     color[:, 1] = 0.664
+    #     color[:, 2] = 1.0
     #     black = fmask[:, i] == 0
-    #     color[black, 0] = 0
-    #     color[black, 1] = 0
+    #     color[black, 0] = 1.0
+    #     color[black, 1] = 0.664
     #     color[black, 2] = 0
-    #     color[exist_face==0, 0] = 0
-    #     color[exist_face==0, 1] = 0.5
-    #     color[exist_face==0, 2] = 1
+    #     color[exist_face==0, 0] = 1.0
+    #     color[exist_face==0, 1] = 0.0
+    #     color[exist_face==0, 2] = 1.0
     #     filename = "{}/dummy_mask/mask_{}.ply".format(os.path.dirname(mesh.path), i)
     #     mesh.save_as_ply(filename, color)
     
@@ -171,12 +174,12 @@ def vmask_to_fmask(mesh, vmask):
 
 def color_mask(mesh, fmask):
     color = np.ones([len(mesh.faces), 3])
-    color[:, 0] = 0.75
-    color[:, 1] = 0.75
-    color[:, 2] = 0.75
-    color[fmask==0, 0] = 0
-    color[fmask==0, 1] = 0.5
-    color[fmask==0, 2] = 1
+    color[:, 0] = 0.332
+    color[:, 1] = 0.664
+    color[:, 2] = 1.0
+    color[fmask==0, 0] = 1.0
+    color[fmask==0, 1] = 0.0
+    color[fmask==0, 2] = 1.0
     os.makedirs("{}/dummy_mask/".format(os.path.dirname(mesh.path)), exist_ok=True)
     filename = "{}/dummy_mask/initial.ply".format(os.path.dirname(mesh.path))
     mesh.save_as_ply(filename, color)

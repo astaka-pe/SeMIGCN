@@ -1,7 +1,7 @@
 import torch
 import torch.nn as nn
 import numpy as np
-from torch_geometric.nn import GCNConv, Sequential
+from torch_geometric.nn import GCNConv, ChebConv, Sequential
 
 
 
@@ -10,6 +10,7 @@ class SingleScaleGCN(nn.Module):
         super(SingleScaleGCN, self).__init__()
         self.device = device
         self.skip = skip
+        conv = "chebconv"
 
         h = [4, 16, 32, 64, 128, 256, 256, 512, 256, 256, 128, 64, 32, 16, 3]
         
@@ -18,21 +19,39 @@ class SingleScaleGCN(nn.Module):
         
         blocks = []
         
-        for i in range(12):
+        if conv == "gcnconv":
+            for i in range(12):
+                block = Sequential("x, edge_index", [
+                    (GCNConv(h[i], h[i+1]), "x, edge_index -> x"),
+                    nn.BatchNorm1d(h[i+1]),
+                    activation_func,
+                ])
+                blocks.append(block)
+            
             block = Sequential("x, edge_index", [
-                (GCNConv(h[i], h[i+1]), "x, edge_index -> x"),
-                nn.BatchNorm1d(h[i+1]),
+                (GCNConv(h[12], h[13]), "x, edge_index -> x"),
+                nn.BatchNorm1d(h[13]),
                 activation_func,
+                (nn.Linear(h[13], h[14]), "x -> x"),
             ])
             blocks.append(block)
         
-        block = Sequential("x, edge_index", [
-            (GCNConv(h[12], h[13]), "x, edge_index -> x"),
-            nn.BatchNorm1d(h[13]),
-            activation_func,
-            (nn.Linear(h[13], h[14]), "x -> x"),
-        ])
-        blocks.append(block)
+        elif conv == "chebconv":
+            for i in range(12):
+                block = Sequential("x, edge_index", [
+                    (ChebConv(h[i], h[i+1], K=3), "x, edge_index -> x"),
+                    nn.BatchNorm1d(h[i+1]),
+                    activation_func,
+                ])
+                blocks.append(block)
+            
+            block = Sequential("x, edge_index", [
+                (ChebConv(h[12], h[13], K=3), "x, edge_index -> x"),
+                nn.BatchNorm1d(h[13]),
+                activation_func,
+                (nn.Linear(h[13], h[14]), "x -> x"),
+            ])
+            blocks.append(block)
         
         self.blocks = nn.ModuleList(blocks)
 

@@ -260,7 +260,13 @@ class MGCN(nn.Module):
             pos = pool(org_pos)
             simp_mesh.vs = pos.detach().to("cpu").numpy().copy()
             color = np.ones([len(simp_mesh.faces), 3])
-            color = color * self.f_masks_list[l+1].reshape(-1, 1).detach().numpy().copy()
+            color[:, 0] = 1.0
+            color[:, 1] = 0  
+            color[:, 2] = 1.0
+            color[self.f_masks_list[l+1].detach().numpy().copy(), 0] = 0.332
+            color[self.f_masks_list[l+1].detach().numpy().copy(), 1] = 0.664
+            color[self.f_masks_list[l+1].detach().numpy().copy(), 2] = 1.0
+            # color = color * self.f_masks_list[l+1].reshape(-1, 1).detach().numpy().copy()
             simp_mesh.save_as_ply("{}/pooled/ini_{}_vs.ply".format(os.path.dirname(simp_mesh.path), len(simp_mesh.vs)), color)
             sm_pos = torch.from_numpy(meshes[l+1].vs).float().to(device)
             self.poss = torch.cat([self.poss, pos], dim=0)
