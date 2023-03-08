@@ -391,7 +391,7 @@ class Mesh:
 
         return vs_code
     
-    def simplification(self, target_v, valence_aware=True):
+    def simplification(self, target_v, valence_aware=True, midpoint=True):
         vs, vf, fn, fc, edges = self.vs, self.vf, self.fn, self.fc, self.edges
 
         """ 1. compute Q for each vertex """
@@ -412,16 +412,28 @@ class Mesh:
         E_heap = []
         for i, e in enumerate(edges):
             v_0, v_1 = vs[e[0]], vs[e[1]]
-            v_new = 0.5 * (v_0 + v_1)
-            v4_new = np.concatenate([v_new, np.array([1])])
+            Q_0, Q_1 = Q_s[e[0]], Q_s[e[1]]
+            Q_new = Q_0 + Q_1
+
+            if midpoint:
+                v_new = 0.5 * (v_0 + v_1)
+                v4_new = np.concatenate([v_new, np.array([1])])
+            else:
+                Q_lp = np.eye(4)
+                Q_lp[:3] = Q_new[:3]
+                try:
+                    Q_lp_inv = np.linalg.inv(Q_lp)
+                    v4_new = np.matmul(Q_lp_inv, np.array([[0]]))
+                except:
+                    v_new = 0.5 * (v_0 + v_1)
+                    v4_new = np.concatenate([v_new, np.array([0,0,0,1]).reshape(-1,1)])
+            
             valence_penalty = 1
             if valence_aware:
                 merged_faces = vf[e[0]].intersection(vf[e[1]])
                 valence_new = len(vf[e[0]].union(vf[e[1]]).difference(merged_faces))
                 valence_penalty = self.valence_weight(valence_new)
 
-            Q_0, Q_1 = Q_s[e[0]], Q_s[e[1]]
-            Q_new = Q_0 + Q_1
             E_new = np.matmul(v4_new, np.matmul(Q_new, v4_new.T)) * valence_penalty
             heapq.heappush(E_heap, (E_new, (e[0], e[1])))
         
@@ -468,6 +480,7 @@ class Mesh:
         self.build_hash(simp_mesh, vi_mask, vert_map)
         
         return simp_mesh
+        
     def edge_based_simplification(self, target_v, valence_aware=True):
         vs, vf, fn, fc, edges = self.vs, self.vf, self.fn, self.fc, self.edges
         edge_len = vs[edges][:,0,:] - vs[edges][:,1,:]
