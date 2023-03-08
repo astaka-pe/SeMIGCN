@@ -28,7 +28,7 @@ def get_parser():
     parser = argparse.ArgumentParser(description="Self-supervised Mesh Completion")
     parser.add_argument("-i", "--input", type=str, required=True)
     parser.add_argument("-pos_lr", type=float, default=0.01)
-    parser.add_argument("-iter", type=int, default=300)
+    parser.add_argument("-iter", type=int, default=100)
     parser.add_argument("-iter_refine", type=int, default=1000)
     parser.add_argument("-k1", type=float, default=4.0)
     parser.add_argument("-k2", type=float, default=4.0)
