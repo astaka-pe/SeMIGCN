@@ -391,7 +391,7 @@ class Mesh:
 
         return vs_code
     
-    def simplification(self, target_v, valence_aware=True, midpoint=True):
+    def simplification(self, target_v, valence_aware=True, midpoint=False):
         vs, vf, fn, fc, edges = self.vs, self.vf, self.fn, self.fc, self.edges
 
         """ 1. compute Q for each vertex """
@@ -423,10 +423,10 @@ class Mesh:
                 Q_lp[:3] = Q_new[:3]
                 try:
                     Q_lp_inv = np.linalg.inv(Q_lp)
-                    v4_new = np.matmul(Q_lp_inv, np.array([[0]]))
+                    v4_new = np.matmul(Q_lp_inv, np.array([[0,0,0,1]]).reshape(-1,1)).reshape(-1)
                 except:
                     v_new = 0.5 * (v_0 + v_1)
-                    v4_new = np.concatenate([v_new, np.array([0,0,0,1]).reshape(-1,1)])
+                    v4_new = np.concatenate([v_new, np.array([1])])
             
             valence_penalty = 1
             if valence_aware:
