@@ -4,7 +4,8 @@
 
 ### Preperation
 
-- Sample meshes are distributed in `datasets/`
+- Unzip `datasets.zip`
+- Sample meshes will be placed in `datasets/`
 - Put your own mesh in a new arbitrary folder as:
     - Deficient mesh: `datasets/**/{mesh-name}/{mesh-name}_original.obj`
     - Ground truth: `datasets/**/{mesh-name}/{mesh-name}_gt.obj`
