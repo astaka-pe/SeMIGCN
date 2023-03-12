@@ -164,6 +164,12 @@ if __name__ == "__main__":
             wandb.log({"loss": epoch_loss}, step=epoch)
             pbar.set_description("Epoch {}".format(epoch))
             pbar.set_postfix({"loss": epoch_loss})
+
+            if epoch == args.iter:
+                out_path = "{}/output/{}_mgcn_{}/train.obj".format(args.input, dt_now, args.output)
+                out_mesh.vs = pos.detach().to("cpu").numpy().copy()
+                Mesh.save(out_mesh, out_path)
+                DIST.mesh_distance(mesh_dic["gt_file"], mesh_dic["org_file"], out_path, args.real)
         
             """ --- test --- """
             if epoch % 10 == 0:

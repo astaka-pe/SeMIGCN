@@ -391,7 +391,7 @@ class Mesh:
 
         return vs_code
     
-    def simplification(self, target_v, valence_aware=True, midpoint=False):
+    def simplification(self, target_v, valence_aware=True, midpoint=True):
         vs, vf, fn, fc, edges = self.vs, self.vf, self.fn, self.fc, self.edges
 
         """ 1. compute Q for each vertex """
@@ -676,31 +676,25 @@ class Mesh:
         simp_mesh.unpool_hash = unpool_hash
     
     @staticmethod
-    def mesh_merge(lap, org_mesh, new_pos, preserve, w=1, w_b=0, w_p=0):
+    def mesh_merge(lap, org_mesh, new_pos, preserve, w=1, w_b=0):
+        # TODO: Delete constraint of boundary
         org_pos = torch.from_numpy(org_mesh.vs).float()
-        preserve_boundary = torch.sparse.mm(org_mesh.AdjI.float(), 1-preserve.float().reshape(-1, 1)) == 0
-        # preserve_boundary = torch.sparse.mm(org_mesh.AdjI.float(), (1-preserve_boundary.float())) == 0
-        preserve_boundary = preserve_boundary.reshape(-1)
-        boundary = torch.logical_xor(preserve, preserve_boundary)
-        A_cat = torch.eye(len(org_pos))[preserve_boundary] * w
+        org_wo_boundary = torch.sparse.mm(org_mesh.AdjI.float(), 1-preserve.float().reshape(-1, 1)) == 0
+        org_wo_boundary = org_wo_boundary.reshape(-1)
+        boundary = torch.logical_xor(preserve, org_wo_boundary)
+        A_org_wo_boundary = torch.eye(len(org_pos))[org_wo_boundary] * w
         A_boundary = torch.eye(len(org_pos))[boundary] * w_b
-        # A_preserve = torch.eye(len(org_pos))[torch.logical_not(preserve)] * w_p
-        A = torch.cat([lap.to_dense(), A_cat], dim=0)
+        A = torch.cat([lap.to_dense(), A_org_wo_boundary], dim=0)
         A = torch.cat([A, A_boundary], dim=0).to_sparse()
-        # A = torch.cat([A, A_preserve], dim=0).to_sparse()
-        b_org = torch.sparse.mm(lap, new_pos)
-        b_org[preserve_boundary] = torch.sparse.mm(lap, org_pos)[preserve_boundary]
-        b_cat = org_pos[preserve_boundary] * w
+        b_mix = torch.sparse.mm(lap, new_pos)
+        b_mix[org_wo_boundary] = torch.sparse.mm(lap, org_pos)[org_wo_boundary]
+        b_org_wo_boundary = org_pos[org_wo_boundary] * w
         b_boundary = org_pos[boundary] * w_b
-        # b_preserve = new_pos[torch.logical_not(preserve)] * w_p
-        b = torch.cat([b_org, b_cat], dim=0)
+        b = torch.cat([b_mix, b_org_wo_boundary], dim=0)
         b = torch.cat([b, b_boundary], dim=0)
-        # b = torch.cat([b, b_preserve], dim=0)
         AtA = torch.sparse.mm(A.t(), A.to_dense())
         Atb = torch.sparse.mm(A.t(), b)
         ref_pos, _ = torch.solve(Atb, AtA)
-        # AtA_inv = torch.inverse(AtA)
-        # new_pos = torch.matmul(AtA_inv, torch.sparse.mm(A.T, b))
         return ref_pos
 
     @staticmethod
