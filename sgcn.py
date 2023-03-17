@@ -46,6 +46,7 @@ def get_parser():
     parser.add_argument("-cache", action="store_true")
     parser.add_argument("-CAD", action="store_true")
     parser.add_argument("-real", action="store_true")
+    parser.add_argument("-mu", type=float, default=1.0)
     args = parser.parse_args()
 
     for k, v in vars(args).items():
@@ -66,20 +67,20 @@ def main():
     fmask_dummy = mesh_dic["fmask_dummy"]
 
     """ --- wandb settings --- """
-    wandb.init(project="inpaint_mgcn", group=mesh_name, name=dt_now.isoformat(),
-            config={
-                "dm_size": args.dm_size,
-                "kn": args.kn,
-                "batch": args.batch,
-                "rot": args.rot,
-                "net": args.net,
-                "annotation": args.ant,
-                "activation": args.activation,
-                "iter": args.iter,
-                "skip": args.skip,
-                "drop": args.drop,
-                "drop_rate": args.drop_rate,
-            })
+    # wandb.init(project="inpaint_mgcn", group=mesh_name, name=dt_now.isoformat(),
+    #         config={
+    #             "dm_size": args.dm_size,
+    #             "kn": args.kn,
+    #             "batch": args.batch,
+    #             "rot": args.rot,
+    #             "net": args.net,
+    #             "annotation": args.ant,
+    #             "activation": args.activation,
+    #             "iter": args.iter,
+    #             "skip": args.skip,
+    #             "drop": args.drop,
+    #             "drop_rate": args.drop_rate,
+    #         })
 
 
     """ --- create model instance --- """
@@ -137,10 +138,10 @@ def main():
             epoch_loss_n /= n_data
             epoch_loss_r /= n_data
             epoch_loss /= n_data
-            wandb.log({"loss_p": epoch_loss_p}, step=epoch)
-            wandb.log({"loss_n": epoch_loss_n}, step=epoch)
-            wandb.log({"loss_r": epoch_loss_r}, step=epoch)
-            wandb.log({"loss": epoch_loss}, step=epoch)
+            # wandb.log({"loss_p": epoch_loss_p}, step=epoch)
+            # wandb.log({"loss_n": epoch_loss_n}, step=epoch)
+            # wandb.log({"loss_r": epoch_loss_r}, step=epoch)
+            # wandb.log({"loss": epoch_loss}, step=epoch)
             pbar.set_description("Epoch {}".format(epoch))
             pbar.set_postfix({"loss": epoch_loss})
         
@@ -169,51 +170,12 @@ def main():
     posnet.eval()
     dm = v_mask.reshape(-1, 1).float()
     out_pos = posnet(dataset, dm).to("cpu").detach()
-    ini_pos = torch.from_numpy(ini_mesh.vs).float()
-    if args.CAD:
-        w = 0.01
-    else:
-        w = 1.0
-    ref_pos = Mesh.mesh_merge(ini_mesh.Lap, ini_mesh, out_pos, v_mask, w=w)
+    ref_pos = Mesh.mesh_merge(ini_mesh.Lap, ini_mesh, out_pos, v_mask, w=args.mu)
     out_path = "{}/output/{}_sgcn/refine.obj".format(args.input, dt_now, args.net)
     out_mesh.vs = ref_pos.detach().numpy().copy()
     Mesh.save(out_mesh, out_path)
     DIST.mesh_distance(mesh_dic["gt_file"], mesh_dic["org_file"], out_path, args.real)
 
-    """ neural refine """
-    # torch_fix_seed()
-    # refnet = nets["single"](device, activation=args.activation, skip=args.skip).to(device)
-    # optimizer_ref = torch.optim.Adam(refnet.parameters(), lr=args.pos_lr)
-
-    # with tqdm(total=args.iter_refine) as pbar:
-    #     posnet.eval()
-    #     dm = v_mask.reshape(-1, 1).float()
-    #     out_pos = posnet(dataset, dm).to("cpu").detach().numpy().copy()
-    #     z1 = ini_mesh.vs - out_pos
-    #     dataset.z1 = torch.tensor(z1, dtype=torch.float, requires_grad=True)
-    #     dataset.x_pos = torch.tensor(out_pos, dtype=torch.float)
-    #     for epoch in range(args.iter+1, args.iter+args.iter_refine+1):
-    #         refnet.train()
-    #         optimizer_ref.zero_grad()
-    #         pos = refnet(dataset, dm)
-    #         norm = Models.compute_fn(pos, ini_mesh.faces)
-    #         loss_p = Loss.mask_pos_rec_loss(pos, ini_mesh.vs, v_mask)
-    #         loss_n = Loss.mask_norm_rec_loss(norm, rot_mesh.fn, f_mask)
-    #         loss = loss_p + args.k1 * loss_n
-    #         loss.backward()
-    #         optimizer_ref.step()
-    #         pbar.set_description("Epoch {}".format(epoch))
-    #         pbar.set_postfix({"loss": loss.item()})
-    #         wandb.log({"loss_p": loss_p}, step=epoch)
-    #         wandb.log({"loss_n": loss_n}, step=epoch)
-    #         wandb.log({"loss": loss}, step=epoch)
-    #         if epoch % 50 == 0:
-    #             out_path = "{}/output/{}_{}/{}_refine.obj".format(args.input, dt_now, args.net, str(epoch))
-    #             out_mesh.vs = pos.to("cpu").detach().numpy().copy()
-    #             Mesh.save(out_mesh, out_path)
-    #         pbar.update(1)
-
-    # DIST.mesh_distance(mesh_dic["gt_file"], mesh_dic["org_file"], out_path)
 
 if __name__ == "__main__":
     main()

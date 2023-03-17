@@ -39,6 +39,7 @@ def get_parse():
     parser.add_argument("-cache", action="store_true")
     parser.add_argument("-CAD", action="store_true")
     parser.add_argument("-real", action="store_true")
+    parser.add_argument("-mu", type=float, default=1.0)
     args = parser.parse_args()
 
     for k, v in vars(args).items():
@@ -58,15 +59,15 @@ if __name__ == "__main__":
     vmask_dummy = mesh_dic["vmask_dummy"]
     fmask_dummy = mesh_dic["fmask_dummy"]
 
-    """ --- wandb settings --- """
-    wandb.init(project="inpaint_mgcn", group=mesh_name, name=dt_now.isoformat(),
-            config={
-                "dm_size": args.dm_size,
-                "kn": args.kn,
-                "batch": args.batch,
-                "iter": args.iter,
-                "skip": args.skip,
-            })
+    # """ --- wandb settings --- """
+    # wandb.init(project="inpaint_mgcn", group=mesh_name, name=dt_now.isoformat(),
+    #         config={
+    #             "dm_size": args.dm_size,
+    #             "kn": args.kn,
+    #             "batch": args.batch,
+    #             "iter": args.iter,
+    #             "skip": args.skip,
+    #         })
 
 
     """ --- create model instance --- """
@@ -85,7 +86,6 @@ if __name__ == "__main__":
     poss_list = posnet.poss_list
     nvs_all = [len(meshes[0].vs)] + nvs
     pos_weight = [0.35, 0.3, 0.2, 0.15]
-    # pos_weight = [1.0, 0.0, 0.0, 0.0]
 
     os.makedirs("{}/output/{}_mgcn_{}".format(args.input, dt_now, args.output), exist_ok=True)
 
@@ -157,11 +157,11 @@ if __name__ == "__main__":
             epoch_loss_r /= n_data
             epoch_loss /= n_data
             epoch_loss_pos /= n_data
-            wandb.log({"loss_p": epoch_loss_p}, step=epoch)
-            wandb.log({"loss_n": epoch_loss_n}, step=epoch)
-            wandb.log({"loss_r": epoch_loss_r}, step=epoch)
-            wandb.log({"loss_pos": epoch_loss_pos}, step=epoch)
-            wandb.log({"loss": epoch_loss}, step=epoch)
+            # wandb.log({"loss_p": epoch_loss_p}, step=epoch)
+            # wandb.log({"loss_n": epoch_loss_n}, step=epoch)
+            # wandb.log({"loss_r": epoch_loss_r}, step=epoch)
+            # wandb.log({"loss_pos": epoch_loss_pos}, step=epoch)
+            # wandb.log({"loss": epoch_loss}, step=epoch)
             pbar.set_description("Epoch {}".format(epoch))
             pbar.set_postfix({"loss": epoch_loss})
 
@@ -195,11 +195,7 @@ if __name__ == "__main__":
     poss = posnet(dataset, dm)
     out_pos = poss[0].to("cpu").detach()
     ini_pos = torch.from_numpy(ini_mesh.vs).float()
-    if args.CAD:
-        w = 0.01    # 0.01
-    else:
-        w = 1.0
-    ref_pos = Mesh.mesh_merge(ini_mesh.Lap, ini_mesh, out_pos, v_mask, w=w)
+    ref_pos = Mesh.mesh_merge(ini_mesh.Lap, ini_mesh, out_pos, v_mask, w=args.mu)
     out_path = "{}/output/{}_mgcn_{}/refine.obj".format(args.input, dt_now, args.output)
     out_mesh.vs = ref_pos.detach().numpy().copy()
     Mesh.save(out_mesh, out_path)

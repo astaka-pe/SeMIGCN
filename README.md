@@ -1,6 +1,15 @@
-# Self-Supervised Mesh Inpainting using Multi-Scale Graph Convolutional Networks
+# Learning Self-Prior for Mesh Inpainting using Self-Supervised Graph Convolutional Network (TBD)
 
 ## Usage
+
+### Installation (TBC)
+
+```
+git clone https://github.com/astaka-pe/xxx
+cd xxx
+conda env create -f environment.yml
+conda activate yyy
+```
 
 ### Preperation
 
@@ -27,13 +36,15 @@ python preprocess/prepare.py -i datasets/**/{mesh-name}/{mesh-name}_original.obj
 ### Training
 
 ```
-python mgcn.py -i datasets/**/{mesh-name}
+python sgcn.py -i datasets/**/{mesh-name}   # SGCN
+python mgcn.py -i datasets/**/{mesh-name}   # MGCN
 ```
 
 - options
     - `-CAD`: For a CAD model
     - `-real`: For a real scan
     - `-cache`: For using cache files (for faster computation)
+    - `-mu` : Weight for refinement
 
 ### Evaluation
 
