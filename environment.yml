@@ -1,4 +1,4 @@
-name: yyyy
+name: semigcn
 channels:
   - defaults
   - pytorch

@@ -5,10 +5,10 @@
 ### Installation (TBC)
 
 ```
-git clone https://github.com/astaka-pe/xxx
-cd xxx
+git clone https://github.com/astaka-pe/SeMIGCN
+cd SeMIGCN
 conda env create -f environment.yml
-conda activate yyy
+conda activate semigcn
 ```
 
 ### Preperation
