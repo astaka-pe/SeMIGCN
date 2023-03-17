@@ -74,6 +74,7 @@ python refinement.py \\
 
 - option
   - `-mu`: Weight for refinement
+    - Choose a weight so that the remaining vertex positions of the initial mesh and the shape of missing regions of the output mesh are saved
 
 ## Run other competitive methods
 
