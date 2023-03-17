@@ -58,6 +58,23 @@ python check/batch_dist_check.py -i datasets/**/{mesh-name}
 - options
     - `-real`: For a real scan
 
+
+### Refinement (Option)
+
+- If you want to perform only refinement, run
+
+```
+python refinement.py \\
+    -src datasets/**/{mesh-name}/{mesh-name}_initial/obj \\
+    -dst datasets/**/{mesh-name}/output/**/100_step/.obj \\     # SGCN
+    # -dst datasets/**/{mesh-name}/output/**/100_step_0.obj \\    # MGCN
+    -vm datasets/**/{mesh-name}/{mesh-name}_vmask.json \\
+    -ref {arbitrary-output-filename}.obj \\
+```
+
+- option
+  - `-mu`: Weight for refinement
+
 ## Run other competitive methods
 
 ### MeshFix [Attene 2010]
