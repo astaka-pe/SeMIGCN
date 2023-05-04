@@ -1,4 +1,4 @@
-# Learning Self-Prior for Mesh Inpainting using Self-Supervised Graph Convolutional Network (TBD)
+# Learning Self-Prior for Mesh Inpainting using Self-Supervised Graph Convolutional Networks
 
 ## Usage
 
@@ -78,7 +78,9 @@ python refinement.py \\
 
 ## Run other competitive methods
 
-### MeshFix [Attene 2010]
+Please refer to [tinymesh](https://github.com/tatsy/tinymesh).
+
+<!-- ### MeshFix [Attene 2010]
 
 ```
 python meshfix.py -i datasets/**/{mesh-name}
@@ -89,4 +91,4 @@ python meshfix.py -i datasets/**/{mesh-name}
 ```
 conda activate tinymesh
 python context_fill.py -i datasets/**/{mesh-name}
-```
+``` -->
