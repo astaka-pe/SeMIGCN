@@ -1,6 +1,7 @@
 # Learning Self-Prior for Mesh Inpainting using Self-Supervised Graph Convolutional Networks
 <div align="center">
-    <img src="docs/semi_anim.gif" alt="gif" width=600>
+    <img src="docs/semi_anim.gif" alt="gif" width=600><br>
+    <img src="docs/overview.png" alt="overview" width=800><br>
 </div>
 
 ## Usage
