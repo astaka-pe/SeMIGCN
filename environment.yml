@@ -18,6 +18,8 @@ dependencies:
     - pyyaml
     - addict
     - plyfile
+    - opencv-python
+    - scikit-learn==1.0.2
     - --find-links  https://pytorch-geometric.com/whl/torch-1.7.0+cu102.html
     - torch-scatter==2.0.7
     - torch-sparse==0.6.10
@@ -25,6 +27,6 @@ dependencies:
     - torch-spline-conv==1.2.1
     - torch-geometric==1.7.1
     - pymeshlab==2021.10
+    - pymeshfix==0.16.1
     - tqdm==4.61.1
-    - scikit-learn==0.24.2
     - wandb==0.12.1
