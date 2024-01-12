@@ -15,11 +15,9 @@ class Dataset:
         self.num_nodes = data.num_nodes
         self.num_edges = data.num_edges
         self.num_node_features = data.num_node_features
-        self.contains_isolated_nodes = data.contains_isolated_nodes()
-        self.contains_self_loops = data.contains_self_loops()
+        self.contains_isolated_nodes = data.has_isolated_nodes()
+        self.contains_self_loops = data.has_self_loops()
         self.z1 = data['z1']
-        self.z2 = data['z2']
-        self.zr = data['zr']
         self.x_pos = data['x_pos']
         self.x_norm = data['x_norm']
         self.edge_index = data['edge_index']
@@ -148,22 +146,6 @@ def make_dummy_mask(mesh, dm_size=40, kn=[3, 4, 5], exist_face=None):
         dropv = 100 * torch.sum(vmask[:, dm_size*i] == 0) // len(mesh.vs)
         filename = "{}/dummy_mask/{}-neighbor-{}per.ply".format(os.path.dirname(mesh.path), k, dropv)
         mesh.save_as_ply(filename, color)
-    """ write mask examples """
-    
-    # for i in range(10):
-    #     color = np.ones([len(mesh.faces), 3])
-    #     color[:, 0] = 0.332
-    #     color[:, 1] = 0.664
-    #     color[:, 2] = 1.0
-    #     black = fmask[:, i] == 0
-    #     color[black, 0] = 1.0
-    #     color[black, 1] = 0.664
-    #     color[black, 2] = 0
-    #     color[exist_face==0, 0] = 1.0
-    #     color[exist_face==0, 1] = 0.0
-    #     color[exist_face==0, 2] = 1.0
-    #     filename = "{}/dummy_mask/mask_{}.ply".format(os.path.dirname(mesh.path), i)
-    #     mesh.save_as_ply(filename, color)
     
     return vmask, fmask
 

@@ -26,7 +26,7 @@ def torch_fix_seed(seed=314):
 def get_parse():
     parser = argparse.ArgumentParser(description="Self-supervised Mesh Completion")
     parser.add_argument("-i", "--input", type=str, required=True)
-    parser.add_argument("-o", "--output", type=str, default="")
+    parser.add_argument("-o", "--output", type=str, default="exp")
     parser.add_argument("-pos_lr", type=float, default=0.01)
     parser.add_argument("-iter", type=int, default=100)
     parser.add_argument("-k1", type=float, default=4.0)
@@ -54,21 +54,10 @@ if __name__ == "__main__":
     ini_file, smo_file, v_mask, f_mask, mesh_name = mesh_dic["ini_file"], mesh_dic["smo_file"], mesh_dic["v_mask"], mesh_dic["f_mask"], mesh_dic["mesh_name"]
     ini_mesh, smo_mesh, out_mesh = mesh_dic["ini_mesh"], mesh_dic["smo_mesh"], mesh_dic["out_mesh"]
     rot_mesh = copy.deepcopy(ini_mesh)
-    dt_now = datetime.datetime.now()
+    dt_now = datetime.datetime.now().strftime('%Y-%m-%d-%H-%M-%S')
 
     vmask_dummy = mesh_dic["vmask_dummy"]
     fmask_dummy = mesh_dic["fmask_dummy"]
-
-    # """ --- wandb settings --- """
-    # wandb.init(project="inpaint_mgcn", group=mesh_name, name=dt_now.isoformat(),
-    #         config={
-    #             "dm_size": args.dm_size,
-    #             "kn": args.kn,
-    #             "batch": args.batch,
-    #             "iter": args.iter,
-    #             "skip": args.skip,
-    #         })
-
 
     """ --- create model instance --- """
     torch_fix_seed()
@@ -76,7 +65,6 @@ if __name__ == "__main__":
     posnet = MGCN(device, smo_mesh, ini_mesh, v_mask, skip=args.skip).to(device)
     optimizer_pos = torch.optim.Adam(posnet.parameters(), lr=args.pos_lr)
     scheduler = torch.optim.lr_scheduler.StepLR(optimizer_pos, step_size=50, gamma=0.5)
-
 
     anss = posnet.poss
     v_masks = posnet.v_masks
@@ -116,16 +104,6 @@ if __name__ == "__main__":
 
                     poss = posnet(dataset, dm)
                     pos = poss[0]
-                    """ compute multiple norms (under construction) """
-                    # st_nv = 0
-                    # norms = None
-                    # for res, mesh in enumerate(meshes):
-                    #     pos = poss[st_nv:st_nv+len(mesh.vs)]
-                    #     norm = Models.compute_fn(pos, mesh.faces)
-                    #     if res == 0:
-                    #         norms = norm
-                    #     else:
-                    #         norms = torch.cat([norms, norm], dim=0)
 
                     norm = Models.compute_fn(pos, ini_mesh.faces)
                     for mesh_idx, pos_i in enumerate(poss):
@@ -157,11 +135,7 @@ if __name__ == "__main__":
             epoch_loss_r /= n_data
             epoch_loss /= n_data
             epoch_loss_pos /= n_data
-            # wandb.log({"loss_p": epoch_loss_p}, step=epoch)
-            # wandb.log({"loss_n": epoch_loss_n}, step=epoch)
-            # wandb.log({"loss_r": epoch_loss_r}, step=epoch)
-            # wandb.log({"loss_pos": epoch_loss_pos}, step=epoch)
-            # wandb.log({"loss": epoch_loss}, step=epoch)
+
             pbar.set_description("Epoch {}".format(epoch))
             pbar.set_postfix({"loss": epoch_loss})
 
