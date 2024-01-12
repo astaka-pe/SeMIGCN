@@ -18,8 +18,7 @@ class Dataset:
         self.contains_isolated_nodes = data.contains_isolated_nodes()
         self.contains_self_loops = data.contains_self_loops()
         self.z1 = data['z1']
-        self.z2 = data['z2']
-        self.zr = data['zr']
+
         self.x_pos = data['x_pos']
         self.x_norm = data['x_norm']
         self.edge_index = data['edge_index']
