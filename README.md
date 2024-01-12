@@ -10,13 +10,21 @@
 
 ## Usage
 
-### Installation (TBC)
+### Installation
 
+#### Conda
 ```
 git clone https://github.com/astaka-pe/SeMIGCN
 cd SeMIGCN
 conda env create -f environment.yml
 conda activate semigcn
+```
+
+#### Docker
+```
+docker image build -t astaka-pe/semigcn .
+docker run -itd --gpus all --name semigcn -v .:/work astaka-pe/semigcn
+docker exec -it semigcn /bin/bash
 ```
 
 ### Preperation
