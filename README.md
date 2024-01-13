@@ -1,6 +1,8 @@
-# SeMIGCN
+# Learning Self-Prior for Mesh Inpainting using Self-Supervised Graph Convolutional Networks
 
-### Learning Self-Prior for Mesh Inpainting using Self-Supervised Graph Convolutional Networks [[arXiv]](https://arxiv.org/abs/2305.00635)
+[[Paper]](https://arxiv.org/abs/2305.00635)
+
+Accepted by **IEEE TVCG 2024**
 
 <div align="center">
     <img src="docs/semi_anim.gif" alt="gif" width=600><br>
@@ -10,7 +12,7 @@
 
 ## Usage
 
-### Installation (TBC)
+### Installation
 
 ```
 git clone https://github.com/astaka-pe/SeMIGCN
