@@ -12,7 +12,17 @@ Accepted by **IEEE TVCG 2024**
 
 ## Usage
 
-### Installation
+### Environments
+
+```
+python==3.7
+pytorch==1.7.0
+torch-geometric==1.7.1
+```
+
+If you prefer to run in a newer environment, please refer to [another branch](https://github.com/astaka-pe/SeMIGCN/tree/torch-1.13-docker).
+
+### Installation (Conda)
 
 ```
 git clone https://github.com/astaka-pe/SeMIGCN
