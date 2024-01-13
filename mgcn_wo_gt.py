@@ -4,7 +4,6 @@ import datetime
 import argparse
 import os
 import copy
-import wandb
 import random
 from tqdm import tqdm
 
@@ -23,7 +22,7 @@ def torch_fix_seed(seed=314):
     torch.backends.cudnn.deterministic = True
     torch.use_deterministic_algorithms = True
 
-def get_parse():
+def get_parser():
     parser = argparse.ArgumentParser(description="Self-supervised Mesh Completion")
     parser.add_argument("-i", "--input", type=str, required=True)
     parser.add_argument("-o", "--output", type=str, default="")
@@ -39,6 +38,7 @@ def get_parse():
     parser.add_argument("-cache", action="store_true")
     parser.add_argument("-CAD", action="store_true")
     parser.add_argument("-real", action="store_true")
+    parser.add_argument("-mu", type=float, default=1.0)
     args = parser.parse_args()
 
     for k, v in vars(args).items():
@@ -46,28 +46,17 @@ def get_parse():
     
     return args
 
-if __name__ == "__main__":
-    args = get_parse()
+def main():
+    args = get_parser()
     """ --- create dataset --- """
     mesh_dic, dataset = Datamaker.create_dataset(args.input, dm_size=args.dm_size, kn=args.kn, cache=args.cache)
     ini_file, smo_file, v_mask, f_mask, mesh_name = mesh_dic["ini_file"], mesh_dic["smo_file"], mesh_dic["v_mask"], mesh_dic["f_mask"], mesh_dic["mesh_name"]
     ini_mesh, smo_mesh, out_mesh = mesh_dic["ini_mesh"], mesh_dic["smo_mesh"], mesh_dic["out_mesh"]
     rot_mesh = copy.deepcopy(ini_mesh)
-    dt_now = datetime.datetime.now()
+    dt_now = datetime.datetime.now().strftime('%Y-%m-%d-%H-%M-%S')
 
     vmask_dummy = mesh_dic["vmask_dummy"]
     fmask_dummy = mesh_dic["fmask_dummy"]
-
-    """ --- wandb settings --- """
-    wandb.init(project="inpaint_mgcn", group=mesh_name, name=dt_now.isoformat(),
-            config={
-                "dm_size": args.dm_size,
-                "kn": args.kn,
-                "batch": args.batch,
-                "iter": args.iter,
-                "skip": args.skip,
-            })
-
 
     """ --- create model instance --- """
     torch_fix_seed()
@@ -75,7 +64,6 @@ if __name__ == "__main__":
     posnet = MGCN(device, smo_mesh, ini_mesh, v_mask, skip=args.skip).to(device)
     optimizer_pos = torch.optim.Adam(posnet.parameters(), lr=args.pos_lr)
     scheduler = torch.optim.lr_scheduler.StepLR(optimizer_pos, step_size=50, gamma=0.5)
-
 
     anss = posnet.poss
     v_masks = posnet.v_masks
@@ -85,7 +73,6 @@ if __name__ == "__main__":
     poss_list = posnet.poss_list
     nvs_all = [len(meshes[0].vs)] + nvs
     pos_weight = [0.35, 0.3, 0.2, 0.15]
-    # pos_weight = [1.0, 0.0, 0.0, 0.0]
 
     os.makedirs("{}/output/{}_mgcn_{}".format(args.input, dt_now, args.output), exist_ok=True)
 
@@ -116,16 +103,6 @@ if __name__ == "__main__":
 
                     poss = posnet(dataset, dm)
                     pos = poss[0]
-                    """ compute multiple norms (under construction) """
-                    # st_nv = 0
-                    # norms = None
-                    # for res, mesh in enumerate(meshes):
-                    #     pos = poss[st_nv:st_nv+len(mesh.vs)]
-                    #     norm = Models.compute_fn(pos, mesh.faces)
-                    #     if res == 0:
-                    #         norms = norm
-                    #     else:
-                    #         norms = torch.cat([norms, norm], dim=0)
 
                     norm = Models.compute_fn(pos, ini_mesh.faces)
                     for mesh_idx, pos_i in enumerate(poss):
@@ -157,11 +134,7 @@ if __name__ == "__main__":
             epoch_loss_r /= n_data
             epoch_loss /= n_data
             epoch_loss_pos /= n_data
-            wandb.log({"loss_p": epoch_loss_p}, step=epoch)
-            wandb.log({"loss_n": epoch_loss_n}, step=epoch)
-            wandb.log({"loss_r": epoch_loss_r}, step=epoch)
-            wandb.log({"loss_pos": epoch_loss_pos}, step=epoch)
-            wandb.log({"loss": epoch_loss}, step=epoch)
+
             pbar.set_description("Epoch {}".format(epoch))
             pbar.set_postfix({"loss": epoch_loss})
         
@@ -187,11 +160,10 @@ if __name__ == "__main__":
     poss = posnet(dataset, dm)
     out_pos = poss[0].to("cpu").detach()
     ini_pos = torch.from_numpy(ini_mesh.vs).float()
-    if args.CAD:
-        w = 0.01
-    else:
-        w = 1.0
-    ref_pos = Mesh.mesh_merge(ini_mesh.Lap, ini_mesh, out_pos, v_mask, w=w)
+    ref_pos = Mesh.mesh_merge(ini_mesh.Lap, ini_mesh, out_pos, v_mask, w=args.mu)
     out_path = "{}/output/{}_mgcn_{}/refine.obj".format(args.input, dt_now, args.output)
     out_mesh.vs = ref_pos.detach().numpy().copy()
     Mesh.save(out_mesh, out_path)
+
+if __name__ == "__main__":
+    main()
