@@ -1,4 +1,6 @@
-# Learning Self-Prior for Mesh Inpainting using Self-Supervised Graph Convolutional Networks [[arXiv]](https://arxiv.org/abs/2305.00635)
+# Learning Self-Prior for Mesh Inpainting using Self-Supervised Graph Convolutional Networks 
+
+[[Paper]](https://arxiv.org/abs/2305.00635)
 
 Accecpted by **IEEE TVCG 2024**.
 
@@ -11,14 +13,6 @@ Accecpted by **IEEE TVCG 2024**.
 ## Usage
 
 ### Installation
-
-#### Conda
-```
-git clone https://github.com/astaka-pe/SeMIGCN
-cd SeMIGCN
-conda env create -f environment.yml
-conda activate semigcn
-```
 
 #### Docker
 ```
