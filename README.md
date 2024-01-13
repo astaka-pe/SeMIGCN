@@ -12,9 +12,15 @@ Accecpted by **IEEE TVCG 2024**
 
 ## Usage
 
-### Installation
+### Environments
+```
+python==3.10
+torch==1.13.0
+torch-geometric==2.2.0
+```
 
-#### Docker
+### Installation (Docker)
+
 ```
 docker image build -t astaka-pe/semigcn .
 docker run -itd --gpus all --name semigcn -v .:/work astaka-pe/semigcn
