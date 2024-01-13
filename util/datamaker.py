@@ -18,7 +18,6 @@ class Dataset:
         self.num_node_features = data.num_node_features
         self.contains_isolated_nodes = data.has_isolated_nodes()
         self.contains_self_loops = data.has_self_loops()
-
         self.z1 = data['z1']
         self.x_pos = data['x_pos']
         self.x_norm = data['x_norm']
