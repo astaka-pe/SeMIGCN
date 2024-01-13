@@ -61,7 +61,7 @@ def main():
     ini_file, smo_file, v_mask, f_mask, mesh_name = mesh_dic["ini_file"], mesh_dic["smo_file"], mesh_dic["v_mask"], mesh_dic["f_mask"], mesh_dic["mesh_name"]
     ini_mesh, smo_mesh, out_mesh = mesh_dic["ini_mesh"], mesh_dic["smo_mesh"], mesh_dic["out_mesh"]
     rot_mesh = copy.deepcopy(ini_mesh)
-    dt_now = datetime.datetime.now()
+    dt_now = datetime.datetime.now().strftime('%Y-%m-%d-%H-%M-%S')
 
     vmask_dummy = mesh_dic["vmask_dummy"]
     fmask_dummy = mesh_dic["fmask_dummy"]

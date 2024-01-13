@@ -23,7 +23,7 @@ def torch_fix_seed(seed=314):
     torch.backends.cudnn.deterministic = True
     torch.use_deterministic_algorithms = True
 
-def get_parse():
+def get_parser():
     parser = argparse.ArgumentParser(description="Self-supervised Mesh Completion")
     parser.add_argument("-i", "--input", type=str, required=True)
     parser.add_argument("-o", "--output", type=str, default="")
@@ -47,14 +47,14 @@ def get_parse():
     
     return args
 
-if __name__ == "__main__":
-    args = get_parse()
+def main():
+    args = get_parser()
     """ --- create dataset --- """
     mesh_dic, dataset = Datamaker.create_dataset(args.input, dm_size=args.dm_size, kn=args.kn, cache=args.cache)
     ini_file, smo_file, v_mask, f_mask, mesh_name = mesh_dic["ini_file"], mesh_dic["smo_file"], mesh_dic["v_mask"], mesh_dic["f_mask"], mesh_dic["mesh_name"]
     ini_mesh, smo_mesh, out_mesh = mesh_dic["ini_mesh"], mesh_dic["smo_mesh"], mesh_dic["out_mesh"]
     rot_mesh = copy.deepcopy(ini_mesh)
-    dt_now = datetime.datetime.now()
+    dt_now = datetime.datetime.now().strftime('%Y-%m-%d-%H-%M-%S')
 
     vmask_dummy = mesh_dic["vmask_dummy"]
     fmask_dummy = mesh_dic["fmask_dummy"]
@@ -201,3 +201,6 @@ if __name__ == "__main__":
     Mesh.save(out_mesh, out_path)
 
     DIST.mesh_distance(mesh_dic["gt_file"], mesh_dic["org_file"], out_path, args.real)
+
+    if __name__ == "__main__":
+        main()

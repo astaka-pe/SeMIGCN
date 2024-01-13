@@ -8,6 +8,7 @@ import copy
 from .mesh import Mesh
 from torch_geometric.data import Data
 from typing import Tuple
+from pathlib import Path
 
 class Dataset:
     def __init__(self, data):
@@ -28,7 +29,8 @@ class Dataset:
 def create_dataset(file_path: str, dm_size=40, kn=[1], cache=False) -> Tuple[dict, Dataset]:
     """ create mesh """
     mesh_dic = {}
-    mesh_name = file_path.split("/")[-1]
+    file_path = str(Path(file_path))
+    mesh_name = Path(file_path).name
     ini_file = "{}/{}_initial.obj".format(file_path, mesh_name)
     smo_file = "{}/{}_smooth.obj".format(file_path, mesh_name)
     gt_file = "{}/{}_gt.obj".format(file_path, mesh_name)

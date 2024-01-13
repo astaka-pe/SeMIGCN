@@ -23,7 +23,7 @@ def torch_fix_seed(seed=314):
     torch.backends.cudnn.deterministic = True
     torch.use_deterministic_algorithms = True
 
-def get_parse():
+def get_parser():
     parser = argparse.ArgumentParser(description="Self-supervised Mesh Completion")
     parser.add_argument("-i", "--input", type=str, required=True)
     parser.add_argument("-o", "--output", type=str, default="")
@@ -39,6 +39,7 @@ def get_parse():
     parser.add_argument("-cache", action="store_true")
     parser.add_argument("-CAD", action="store_true")
     parser.add_argument("-real", action="store_true")
+    parser.add_argument("-mu", type=float, default=1.0)
     args = parser.parse_args()
 
     for k, v in vars(args).items():
@@ -46,14 +47,14 @@ def get_parse():
     
     return args
 
-if __name__ == "__main__":
-    args = get_parse()
+def main():
+    args = get_parser()
     """ --- create dataset --- """
     mesh_dic, dataset = Datamaker.create_dataset(args.input, dm_size=args.dm_size, kn=args.kn, cache=args.cache)
     ini_file, smo_file, v_mask, f_mask, mesh_name = mesh_dic["ini_file"], mesh_dic["smo_file"], mesh_dic["v_mask"], mesh_dic["f_mask"], mesh_dic["mesh_name"]
     ini_mesh, smo_mesh, out_mesh = mesh_dic["ini_mesh"], mesh_dic["smo_mesh"], mesh_dic["out_mesh"]
     rot_mesh = copy.deepcopy(ini_mesh)
-    dt_now = datetime.datetime.now()
+    dt_now = datetime.datetime.now().strftime('%Y-%m-%d-%H-%M-%S')
 
     vmask_dummy = mesh_dic["vmask_dummy"]
     fmask_dummy = mesh_dic["fmask_dummy"]
@@ -187,11 +188,10 @@ if __name__ == "__main__":
     poss = posnet(dataset, dm)
     out_pos = poss[0].to("cpu").detach()
     ini_pos = torch.from_numpy(ini_mesh.vs).float()
-    if args.CAD:
-        w = 0.01
-    else:
-        w = 1.0
-    ref_pos = Mesh.mesh_merge(ini_mesh.Lap, ini_mesh, out_pos, v_mask, w=w)
+    ref_pos = Mesh.mesh_merge(ini_mesh.Lap, ini_mesh, out_pos, v_mask, w=args.mu)
     out_path = "{}/output/{}_mgcn_{}/refine.obj".format(args.input, dt_now, args.output)
     out_mesh.vs = ref_pos.detach().numpy().copy()
     Mesh.save(out_mesh, out_path)
+
+if __name__ == "__main__":
+    main()
