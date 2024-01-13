@@ -94,7 +94,7 @@ class Mesh:
                 edge_key = edge2key[edge]
                 sides[edge_key][nb_count[edge_key] - 2] = nb_count[edge2key[faces_edges[(idx + 1) % 3]]] - 1
                 sides[edge_key][nb_count[edge_key] - 1] = nb_count[edge2key[faces_edges[(idx + 2) % 3]]] - 2
-        self.edges = np.array(edges, dtype=np.int32)
+        self.edges = np.array(edges, dtype=np.int64)
         self.gemm_edges = np.array(edge_nb, dtype=np.int64)
         self.sides = np.array(sides, dtype=np.int64)
         self.edges_count = edges_count
@@ -398,7 +398,7 @@ class Mesh:
         Q_s = [[] for _ in range(len(vs))]
         E_s = [[] for _ in range(len(vs))]
         for i, v in enumerate(vs):
-            f_s = np.array(list(vf[i]), dtype=np.int)
+            f_s = np.array(list(vf[i]), dtype=np.int64)
             fc_s = fc[f_s]
             fn_s = fn[f_s]
             d_s = - 1.0 * np.sum(fn_s * fc_s, axis=1, keepdims=True)
@@ -440,8 +440,8 @@ class Mesh:
         """ 3. collapse minimum-error vertex """
         simp_mesh = copy.deepcopy(self)
 
-        vi_mask = np.ones([len(simp_mesh.vs)]).astype(np.bool)
-        fi_mask = np.ones([len(simp_mesh.faces)]).astype(np.bool)
+        vi_mask = np.ones([len(simp_mesh.vs)]).astype(np.bool_)
+        fi_mask = np.ones([len(simp_mesh.faces)]).astype(np.bool_)
 
         vert_map = [{i} for i in range(len(simp_mesh.vs))]
 
@@ -497,8 +497,8 @@ class Mesh:
         """ 3. collapse minimum-error vertex """
         simp_mesh = copy.deepcopy(self)
 
-        vi_mask = np.ones([len(simp_mesh.vs)]).astype(np.bool)
-        fi_mask = np.ones([len(simp_mesh.faces)]).astype(np.bool)
+        vi_mask = np.ones([len(simp_mesh.vs)]).astype(np.bool_)
+        fi_mask = np.ones([len(simp_mesh.faces)]).astype(np.bool_)
 
         vert_map = [{i} for i in range(len(simp_mesh.vs))]
 
@@ -559,7 +559,7 @@ class Mesh:
         vert_map[vi_0] = vert_map[vi_0].union({vi_1})
         vert_map[vi_1] = set()
         
-        fi_mask[np.array(list(merged_faces)).astype(np.int)] = False
+        fi_mask[np.array(list(merged_faces)).astype(np.int64)] = False
 
         simp_mesh.vs[vi_0] = 0.5 * (simp_mesh.vs[vi_0] + simp_mesh.vs[vi_1])
 
@@ -599,7 +599,7 @@ class Mesh:
         vert_map[vi_0] = vert_map[vi_0].union({vi_1})
         vert_map[vi_1] = set()
         
-        fi_mask[np.array(list(merged_faces)).astype(np.int)] = False
+        fi_mask[np.array(list(merged_faces)).astype(np.int64)] = False
 
         simp_mesh.vs[vi_0] = 0.5 * (simp_mesh.vs[vi_0] + simp_mesh.vs[vi_1])
 
