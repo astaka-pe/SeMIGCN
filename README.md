@@ -1,8 +1,8 @@
-# Learning Self-Prior for Mesh Inpainting using Self-Supervised Graph Convolutional Networks 
+# Learning Self-Prior for Mesh Inpainting using Self-Supervised Graph Convolutional Networks
 
 [[Paper]](https://arxiv.org/abs/2305.00635)
 
-Accecpted by **IEEE TVCG 2024**.
+Accecpted by **IEEE TVCG 2024**
 
 <div align="center">
     <img src="docs/semi_anim.gif" alt="gif" width=600><br>
