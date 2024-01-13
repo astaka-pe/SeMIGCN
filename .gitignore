@@ -10,7 +10,7 @@ datasets/
 advancing_front.py
 context_fill.py
 count_insert_vnum.py
-meshfix.py
 mesh_edit.py
+meshfix.py
 mgcn_time.py
 sgcn_time.py
