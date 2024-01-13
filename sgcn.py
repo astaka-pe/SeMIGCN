@@ -153,6 +153,5 @@ def main():
     Mesh.save(out_mesh, out_path)
     DIST.mesh_distance(mesh_dic["gt_file"], mesh_dic["org_file"], out_path, args.real)
 
-
 if __name__ == "__main__":
     main()
