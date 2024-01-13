@@ -202,5 +202,5 @@ def main():
 
     DIST.mesh_distance(mesh_dic["gt_file"], mesh_dic["org_file"], out_path, args.real)
 
-    if __name__ == "__main__":
-        main()
+if __name__ == "__main__":
+    main()
