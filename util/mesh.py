@@ -694,7 +694,7 @@ class Mesh:
         b = torch.cat([b, b_boundary], dim=0)
         AtA = torch.sparse.mm(A.t(), A.to_dense())
         Atb = torch.sparse.mm(A.t(), b)
-        ref_pos, _ = torch.linalg.solve(Atb, AtA)
+        ref_pos = torch.linalg.solve(AtA, Atb)
         return ref_pos
 
     @staticmethod

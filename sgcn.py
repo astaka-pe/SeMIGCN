@@ -5,7 +5,6 @@ import datetime
 import argparse
 import os
 import copy
-import wandb
 import random
 from tqdm import tqdm
 
@@ -61,27 +60,10 @@ def main():
     ini_file, smo_file, v_mask, f_mask, mesh_name = mesh_dic["ini_file"], mesh_dic["smo_file"], mesh_dic["v_mask"], mesh_dic["f_mask"], mesh_dic["mesh_name"]
     ini_mesh, smo_mesh, out_mesh = mesh_dic["ini_mesh"], mesh_dic["smo_mesh"], mesh_dic["out_mesh"]
     rot_mesh = copy.deepcopy(ini_mesh)
-    dt_now = datetime.datetime.now()
+    dt_now = datetime.datetime.now().strftime('%Y-%m-%d-%H-%M-%S')
 
     vmask_dummy = mesh_dic["vmask_dummy"]
     fmask_dummy = mesh_dic["fmask_dummy"]
-
-    """ --- wandb settings --- """
-    # wandb.init(project="inpaint_mgcn", group=mesh_name, name=dt_now.isoformat(),
-    #         config={
-    #             "dm_size": args.dm_size,
-    #             "kn": args.kn,
-    #             "batch": args.batch,
-    #             "rot": args.rot,
-    #             "net": args.net,
-    #             "annotation": args.ant,
-    #             "activation": args.activation,
-    #             "iter": args.iter,
-    #             "skip": args.skip,
-    #             "drop": args.drop,
-    #             "drop_rate": args.drop_rate,
-    #         })
-
 
     """ --- create model instance --- """
     torch_fix_seed()
@@ -138,10 +120,7 @@ def main():
             epoch_loss_n /= n_data
             epoch_loss_r /= n_data
             epoch_loss /= n_data
-            # wandb.log({"loss_p": epoch_loss_p}, step=epoch)
-            # wandb.log({"loss_n": epoch_loss_n}, step=epoch)
-            # wandb.log({"loss_r": epoch_loss_r}, step=epoch)
-            # wandb.log({"loss": epoch_loss}, step=epoch)
+
             pbar.set_description("Epoch {}".format(epoch))
             pbar.set_postfix({"loss": epoch_loss})
         
@@ -165,8 +144,6 @@ def main():
     DIST.mesh_distance(mesh_dic["gt_file"], mesh_dic["org_file"], out_path, args.real)
 
     """ refinement """
-
-    """ laplacian refine """
     posnet.eval()
     dm = v_mask.reshape(-1, 1).float()
     out_pos = posnet(dataset, dm).to("cpu").detach()
