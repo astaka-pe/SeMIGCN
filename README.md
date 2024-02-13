@@ -1,8 +1,14 @@
 # Learning Self-Prior for Mesh Inpainting using Self-Supervised Graph Convolutional Networks
 
-[[Paper]](https://arxiv.org/abs/2305.00635)
+<div align="center">
 
-Accecpted by **IEEE TVCG 2024**
+<h3>
+ <a href="https://ieeexplore.ieee.org/abstract/document/10430436" target="_blank" rel="noopener noreferrer">Paper</a> | 
+ <a href="https://arxiv.org/abs/2305.00635" target="_blank" rel="noopener noreferrer">arXiv</a>
+ <br><br>
+Accepted by IEEE TVCG 2024
+</h3>
+</div>
 
 <div align="center">
     <img src="docs/semi_anim.gif" alt="gif" width=600><br>
@@ -108,3 +114,15 @@ python meshfix.py -i datasets/**/{mesh-name}
 conda activate tinymesh
 python context_fill.py -i datasets/**/{mesh-name}
 ``` -->
+
+## Citation
+
+```
+@article{hattori2024semigcn,
+  title={Learning Self-Prior for Mesh Inpainting Using Self-Supervised Graph Convolutional Networks},
+  author={Hattori, Shota and Yatagawa, Tatsuya and Ohtake, Yutaka and Suzuki, Hiromasa},
+  journal={IEEE Transactions on Visualization and Computer Graphics},
+  year={2024},
+  publisher={IEEE}
+}
+```
