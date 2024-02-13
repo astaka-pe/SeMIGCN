@@ -2,9 +2,12 @@
 
 <div align="center">
 
-## [Paper](https://ieeexplore.ieee.org/abstract/document/10430436) | [arXiv](https://arxiv.org/abs/2305.00635)
-### Accepted by **IEEE TVCG 2024**
-
+<h3>
+ <a src="https://ieeexplore.ieee.org/abstract/document/10430436">Paper</a> | 
+ <a src="https://arxiv.org/abs/2305.00635">arXiv</a>
+ <br><br>
+Accepted by IEEE TVCG 2024
+</h3>
 </div>
 
 <div align="center">
