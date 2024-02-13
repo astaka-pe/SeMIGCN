@@ -3,8 +3,8 @@
 <div align="center">
 
 <h3>
- <a src="https://ieeexplore.ieee.org/abstract/document/10430436">Paper</a> | 
- <a src="https://arxiv.org/abs/2305.00635">arXiv</a>
+ <a href="https://ieeexplore.ieee.org/abstract/document/10430436" target="_blank" rel="noopener noreferrer">Paper</a> | 
+ <a href="https://arxiv.org/abs/2305.00635" target="_blank" rel="noopener noreferrer">arXiv</a>
  <br><br>
 Accepted by IEEE TVCG 2024
 </h3>
