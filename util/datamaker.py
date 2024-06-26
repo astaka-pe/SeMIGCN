@@ -45,6 +45,7 @@ def create_dataset(file_path: str, dm_size=40, kn=[1], cache=False) -> Tuple[dic
         ini_mesh = Mesh(ini_file, build_mat=False)
         out_mesh = copy.deepcopy(ini_mesh)
         torch.save(ini_mesh, "{}/{}_initial.pt".format(file_path, mesh_name))
+    org_mesh = Mesh(org_file, manifold=False)
     smo_mesh = Mesh(smo_file, manifold=False)
     Mesh.copy_attribute(ini_mesh, smo_mesh)
     
@@ -83,6 +84,7 @@ def create_dataset(file_path: str, dm_size=40, kn=[1], cache=False) -> Tuple[dic
     mesh_dic["v_mask"] = torch.from_numpy(v_mask).bool()
     mesh_dic["f_mask"] = f_mask
     mesh_dic["mesh_name"] = mesh_name
+    mesh_dic["org_mesh"] = org_mesh
     mesh_dic["ini_mesh"] = ini_mesh
     mesh_dic["out_mesh"] = out_mesh
     mesh_dic["smo_mesh"] = smo_mesh

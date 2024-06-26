@@ -5,6 +5,7 @@ import argparse
 import os
 import copy
 import random
+import viser
 from tqdm import tqdm
 
 import util.loss as Loss
@@ -39,6 +40,8 @@ def get_parser():
     parser.add_argument("-CAD", action="store_true")
     parser.add_argument("-real", action="store_true")
     parser.add_argument("-mu", type=float, default=1.0)
+    parser.add_argument("-viewer", action="store_true", default=True)
+    parser.add_argument("-port", type=int, default=8081)
     args = parser.parse_args()
 
     for k, v in vars(args).items():
@@ -48,10 +51,14 @@ def get_parser():
 
 def main():
     args = get_parser()
+
+    if args.viewer:
+        server = viser.ViserServer(port=args.port)
+
     """ --- create dataset --- """
     mesh_dic, dataset = Datamaker.create_dataset(args.input, dm_size=args.dm_size, kn=args.kn, cache=args.cache)
     ini_file, smo_file, v_mask, f_mask, mesh_name = mesh_dic["ini_file"], mesh_dic["smo_file"], mesh_dic["v_mask"], mesh_dic["f_mask"], mesh_dic["mesh_name"]
-    ini_mesh, smo_mesh, out_mesh = mesh_dic["ini_mesh"], mesh_dic["smo_mesh"], mesh_dic["out_mesh"]
+    org_mesh, ini_mesh, smo_mesh, out_mesh = mesh_dic["org_mesh"], mesh_dic["ini_mesh"], mesh_dic["smo_mesh"], mesh_dic["out_mesh"]
     rot_mesh = copy.deepcopy(ini_mesh)
     dt_now = datetime.datetime.now().strftime('%Y-%m-%d-%H-%M-%S')
 
@@ -75,6 +82,29 @@ def main():
     pos_weight = [0.35, 0.3, 0.2, 0.15]
 
     os.makedirs("{}/output/{}_mgcn_{}".format(args.input, dt_now, args.output), exist_ok=True)
+    scale = 2 / np.max(org_mesh.vs)
+    if args.viewer:
+        print("\n\033[42m Viewer at: http://localhost:{} \033[0m\n".format(args.port))
+        with server.gui.add_folder("Training"):
+            server.scene.add_mesh_simple(
+                name="/input",
+                vertices=org_mesh.vs * scale,
+                faces=org_mesh.faces,
+                flat_shading=True,
+                visible=False,
+            )
+            server.scene.add_mesh_simple(
+                name="/initial",
+                vertices=ini_mesh.vs * scale,
+                faces=ini_mesh.faces,
+                flat_shading=True,
+                visible=False,
+            )
+            gui_counter = server.gui.add_number(
+                "Epoch",
+                initial_value=0,
+                disabled=True,
+            )
 
     """ --- learning loop --- """
     with tqdm(total=args.iter) as pbar:
@@ -155,7 +185,16 @@ def main():
                     mesh.vs = poss[res].to("cpu").detach().numpy().copy()
                     st_nv += len(mesh.vs)
                     Mesh.save(mesh, out_path)
+                    if args.viewer:
+                        server.scene.add_mesh_simple(
+                            name="/output/res-{}".format(res),
+                            vertices=mesh.vs * scale,
+                            faces=mesh.faces,
+                            flat_shading=True,    
+                        )
                 out_path = "{}/output/{}_mgcn_{}/{}_step_0.obj".format(args.input, dt_now, args.output, str(epoch))
+                if args.viewer:
+                    gui_counter.value = epoch
                 
             pbar.update(1)
 

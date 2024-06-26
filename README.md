@@ -29,7 +29,7 @@ torch-geometric==2.2.0
 
 ```
 docker image build -t astaka-pe/semigcn .
-docker run -itd --gpus all --name semigcn -v .:/work astaka-pe/semigcn
+docker run -itd --gpus all -p 8081:8081 --name semigcn -v .:/work astaka-pe/semigcn
 docker exec -it semigcn /bin/bash
 ```
 
@@ -48,7 +48,7 @@ docker exec -it semigcn /bin/bash
 - Create **initial mesh** and **smoothed mesh**
 
 ```
-python preprocess/prepare.py -i datasets/**/{mesh-name}/{mesh-name}_original.obj
+python3 preprocess/prepare.py -i datasets/**/{mesh-name}/{mesh-name}_original.obj
 ```
 - options
     - `-r {float}`: Target length of remeshing. The higher the coarser, the lower the finer. `default=0.6`.
@@ -58,8 +58,8 @@ python preprocess/prepare.py -i datasets/**/{mesh-name}/{mesh-name}_original.obj
 ### Training
 
 ```
-python sgcn.py -i datasets/**/{mesh-name}   # SGCN
-python mgcn.py -i datasets/**/{mesh-name}   # MGCN
+python3 sgcn.py -i datasets/**/{mesh-name}   # SGCN
+python3 mgcn.py -i datasets/**/{mesh-name}   # MGCN
 ```
 
 - options
@@ -68,13 +68,17 @@ python mgcn.py -i datasets/**/{mesh-name}   # MGCN
     - `-cache`: For using cache files (for faster computation)
     - `-mu` : Weight for refinement
 
+You can monitor the training progress through the web viewer. (Default: http://localhost:8081)
+
+<img src="docs/viewer.png" alt="viewer" width=800><br>
+
 ### Evaluation
 
 - Create `datasets/**/{mesh-name}/comparison` and put meshes for evaluation
     - A deficient mesh `datasets/**/{mesh-name}/comparison/original.obj` and a ground truth mesh `datasets/**/{mesh-name}/comparison/gt.obj` are needed for evaluation
 
 ```
-python check/batch_dist_check.py -i datasets/**/{mesh-name}
+python3 check/batch_dist_check.py -i datasets/**/{mesh-name}
 ```
 
 - options
@@ -86,7 +90,7 @@ python check/batch_dist_check.py -i datasets/**/{mesh-name}
 - If you want to perform only refinement, run
 
 ```
-python refinement.py \\
+python3 refinement.py \\
     -src datasets/**/{mesh-name}/{mesh-name}_initial/obj \\
     -dst datasets/**/{mesh-name}/output/**/100_step/.obj \\     # SGCN
     # -dst datasets/**/{mesh-name}/output/**/100_step_0.obj \\    # MGCN
@@ -105,14 +109,14 @@ Please refer to [tinymesh](https://github.com/tatsy/tinymesh).
 <!-- ### MeshFix [Attene 2010]
 
 ```
-python meshfix.py -i datasets/**/{mesh-name}
+python3 meshfix.py -i datasets/**/{mesh-name}
 ```
 
 ### Context-based Coherent Surface Completion [Harary+ 2014]
 
 ```
 conda activate tinymesh
-python context_fill.py -i datasets/**/{mesh-name}
+python3 context_fill.py -i datasets/**/{mesh-name}
 ``` -->
 
 ## Citation

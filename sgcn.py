@@ -6,6 +6,7 @@ import argparse
 import os
 import copy
 import random
+import viser
 from tqdm import tqdm
 
 import util.loss as Loss
@@ -46,6 +47,8 @@ def get_parser():
     parser.add_argument("-CAD", action="store_true")
     parser.add_argument("-real", action="store_true")
     parser.add_argument("-mu", type=float, default=1.0)
+    parser.add_argument("-viewer", action="store_true", default=True)
+    parser.add_argument("-port", type=int, default=8081)
     args = parser.parse_args()
 
     for k, v in vars(args).items():
@@ -55,10 +58,14 @@ def get_parser():
 
 def main():
     args = get_parser()
+
+    if args.viewer:
+        server = viser.ViserServer(port=args.port)
+
     mesh_dic, dataset = Datamaker.create_dataset(args.input, dm_size=args.dm_size, kn=args.kn, cache=args.cache)
     dataset_rot = copy.deepcopy(dataset)
     ini_file, smo_file, v_mask, f_mask, mesh_name = mesh_dic["ini_file"], mesh_dic["smo_file"], mesh_dic["v_mask"], mesh_dic["f_mask"], mesh_dic["mesh_name"]
-    ini_mesh, smo_mesh, out_mesh = mesh_dic["ini_mesh"], mesh_dic["smo_mesh"], mesh_dic["out_mesh"]
+    org_mesh, ini_mesh, smo_mesh, out_mesh = mesh_dic["org_mesh"], mesh_dic["ini_mesh"], mesh_dic["smo_mesh"], mesh_dic["out_mesh"]
     rot_mesh = copy.deepcopy(ini_mesh)
     dt_now = datetime.datetime.now().strftime('%Y-%m-%d-%H-%M-%S')
 
@@ -73,6 +80,29 @@ def main():
     scheduler = torch.optim.lr_scheduler.StepLR(optimizer_pos, step_size=50, gamma=0.5)
 
     os.makedirs("{}/output/{}_sgcn".format(args.input, dt_now), exist_ok=True)
+    scale = 2 / np.max(org_mesh.vs)
+    if args.viewer:
+        print("\n\033[42m Viewer at: http://localhost:{} \033[0m\n".format(args.port))
+        with server.gui.add_folder("Training"):
+            server.scene.add_mesh_simple(
+                name="/input",
+                vertices=org_mesh.vs * scale,
+                faces=org_mesh.faces,
+                flat_shading=True,
+                visible=False,
+            )
+            server.scene.add_mesh_simple(
+                name="/initial",
+                vertices=ini_mesh.vs * scale,
+                faces=ini_mesh.faces,
+                flat_shading=True,
+                visible=False,
+            )
+            gui_counter = server.gui.add_number(
+                "Epoch",
+                initial_value=0,
+                disabled=True,
+            )
 
     """ --- learning loop --- """
     with tqdm(total=args.iter) as pbar:
@@ -137,7 +167,16 @@ def main():
                 dm = v_mask.reshape(-1, 1).float()
                 pos = posnet(dataset, dm)
                 out_mesh.vs = pos.to("cpu").detach().numpy().copy()
-                Mesh.save(out_mesh, out_path) 
+                Mesh.save(out_mesh, out_path)
+                if args.viewer:
+                    server.scene.add_mesh_simple(
+                        name="/output",
+                        vertices=out_mesh.vs * scale,
+                        faces=out_mesh.faces,
+                        flat_shading=True,    
+                    )
+                if args.viewer:
+                    gui_counter.value = epoch
 
             pbar.update(1)
 
